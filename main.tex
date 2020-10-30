@@ -1,0 +1,173 @@
+\documentclass{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{url}
+
+\title{Zig Workshop}
+\author{Joachim Schmidt}
+\date{29. Oktober 2020}
+
+\begin{document}
+
+%\frame{\titlepage}
+
+\begin{frame}{}
+    \begin{figure}
+        \centering
+        \includegraphics[width=\textwidth]{zig-logo-dark.png}
+        \caption{\cite{logo}}
+        \label{fig:logo}
+    \end{figure}
+\end{frame}
+
+\begin{frame}{}
+    \tableofcontents
+\end{frame}
+
+\section{Einführung}
+
+\begin{frame}{Die Zig Programmiersprache}
+    \begin{itemize}
+        \item imperativ
+        \item statisch typisiert
+        \item low-level / manuelles Speichermanagement
+        \item Ausführung von Code zur Kompilierzeit
+    \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Hello World}
+\begin{verbatim}
+const std = @import("std");
+
+pub fn main() !void {
+    std.debug.print("Hello {}!\n", .{"World"});
+}
+\end{verbatim}
+\end{frame}
+
+\section{Eigenschaften von Zig}
+
+\begin{frame}{Eigenschaften}
+    \begin{itemize}
+        \item statisch typisiert
+        \item manuelles Speichermanagement
+        \item Ausführung von Code zur Kompilierzeit
+        \item Integration mit C
+    \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Statische Typisierung}
+\begin{verbatim}
+const std = @import("std");
+
+const Foo = struct { bar: u32 };
+
+pub fn main() !void {
+    var i: u32 = 42;
+    var foo: Foo = .{ .bar = i };
+    var x = i;
+    var y: u64 = x;
+
+    std.debug.warn("foo is of type {}\n", .{
+        @typeName(@TypeOf(foo)),
+    });
+    std.debug.warn("x is of type {}\n", .{
+        @typeName(@TypeOf(x)),
+    });
+}
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Manuelles Speichermanagement...}
+\begin{verbatim}
+const std = @import("std");
+
+pub fn main() !void {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer _ = gpa.deinit();
+    const allocator = &gpa.allocator;
+
+    var list = std.ArrayList(u32).init(allocator);
+    try list.append(42);
+    list.deinit();
+
+    std.debug.warn("{}\n", .{list.items[0]});
+}
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{...ist riskant}
+\begin{verbatim}
+Segmentation fault at address 0x7f2e08661000
+./manual.zig:12:40: 0x22b9f7 in main (manual)
+    std.debug.warn("{}\n", .{list.items[0]});
+                                       ^
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Ausführung von Code zur Kompilierzeit}
+\begin{verbatim}
+const fib_numbers = comptime blk: {
+    var result = [_]u32{0} ** 10;
+    result[1] = 1;
+    for (result) |*x, i| {
+        if (i > 1) x.* = result[i - 2] + result[i - 1];
+    }
+    break :blk result;
+};
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Integration mit C}
+\begin{verbatim}
+const std = @import("std");
+
+const c = @cImport({
+    @cInclude("stdlib.h");
+    @cInclude("stdio.h");
+    @cInclude("readline/readline.h");
+});
+
+pub fn main() !void {
+    const input = c.readline("prompt> ");
+    defer std.c.free(input);
+
+    std.debug.warn("Your input was: {s}\n", .{input});
+}
+\end{verbatim}
+\end{frame}
+
+\section{Live Coding}
+
+\begin{frame}{Live-Coding}
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.6\textwidth]{zero.png}
+        \caption{Zero, eines der Zig Maskottchen \cite{zero}}
+        \label{fig:zero}
+    \end{figure}
+\end{frame}
+
+\begin{frame}{Links}
+    \begin{itemize}
+        \item Quellcode: \url{https://github.com/joachimschmidt557/zig-workshop-ophase2020}
+        \item Homepage: \url{https://ziglang.org}
+        \item Github: \url{https://github.com/ziglang/zig}
+        \item ziglearn: \url{https://ziglearn.org}
+        \item Zig Showtime: \url{https://zig.show}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Quellen}
+\begin{thebibliography}{}
+\bibitem{logo}
+\url{https://github.com/ziglang/logo/raw/master/zig-logo-dark.svg}
+
+\bibitem{zero}
+\url{https://github.com/ziglang/logo/raw/master/zero.svg}
+
+\end{thebibliography}
+\end{frame}
+
+\end{document}
+
